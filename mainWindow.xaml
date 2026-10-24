@@ -1,0 +1,123 @@
+<Window x:Class="boardzz.mainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Boardzz" Width="820" Height="740" MinWidth="640" MinHeight="520"
+        Background="#16181D" FontFamily="Segoe UI" FontSize="13" Icon="Assets/boardzz.ico"
+        Closed="onClosed">
+
+    <Window.Resources>
+        <Style x:Key="padStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="#E6E6E6"/>
+            <Setter Property="Background" Value="#262A33"/>
+            <Setter Property="BorderBrush" Value="#3A3F4B"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="chrome"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="2" CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="chrome" Property="Background" Value="#323845"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="chrome" Property="Background" Value="#3E4655"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+        <!-- Source → Boardzz → Target -->
+        <Grid DockPanel.Dock="Bottom" Margin="13,0,13,13">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- SOURCE -->
+            <Border Style="{StaticResource pipeCard}">
+                <StackPanel>
+                    <TextBlock Text="SOURCE" Style="{StaticResource pipeTitle}"/>
+                    <Button x:Name="sourceButton" Style="{StaticResource listButton}" Background="#1E1F22"
+                            Click="onSourceClick" ToolTip="Microphones, desktop audio or a window (pick several)">
+                        <TextBlock x:Name="sourceText" Text="Pick sources…" TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <Grid Margin="2,12,2,0" Height="6" ToolTip="Live input level of your sources">
+                        <Border x:Name="levelTrack" Background="#1E1F22" CornerRadius="3"/>
+                        <Border x:Name="levelFill" Background="#3DD68C" CornerRadius="3" HorizontalAlignment="Left" Width="0"/>
+                    </Grid>
+                    <Popup x:Name="sourcePopup" PlacementTarget="{Binding ElementName=sourceButton}" Placement="Top"
+                           VerticalOffset="-6" StaysOpen="False" AllowsTransparency="True" Closed="onSourcePopupClosed">
+                        <Border Style="{StaticResource popupCard}">
+                            <ScrollViewer MaxHeight="380" VerticalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="sourceList" MinWidth="280"/>
+                            </ScrollViewer>
+                        </Border>
+                    </Popup>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Grid.Column="1" Style="{StaticResource pipeArrow}"/>
+
+            <!-- BOARDZZ: rolling recording -->
+            <Border Grid.Column="2" Style="{StaticResource pipeCard}">
+                <StackPanel>
+                    <TextBlock Text="BOARDZZ" Style="{StaticResource pipeTitle}"/>
+                    <StackPanel Orientation="Horizontal">
+                            <Ellipse x:Name="recordDot" Width="9" Height="9" Fill="#ED4245" Opacity="0.25"
+                                     VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="Last" Foreground="#B5BAC1" VerticalAlignment="Center"/>
+                            <TextBox x:Name="secondsBox" Style="{StaticResource darkTextBox}" Width="54" Padding="4,5"
+                                     Margin="6,0" TextAlignment="Center" MaxLength="3"
+                                     KeyDown="onSecondsKeyDown" LostFocus="onSecondsLostFocus"
+                                     ToolTip="How many seconds to keep (1 to 600)"/>
+                            <TextBlock Text="s" Foreground="#B5BAC1" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button Content="Save clip" Style="{StaticResource accentButton}" Margin="0,10,0,0"
+                            FontSize="13" Padding="12,7" Click="onSaveClipClick"
+                            ToolTip="Turn the recorded audio into a pad"/>
+                    <TextBlock x:Name="recordStatus" Text="No source, nothing recording" Foreground="#6D717A"
+                               FontSize="11" Margin="0,6,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Grid.Column="3" Style="{StaticResource pipeArrow}"/>
+
+            <!-- TARGET -->
+            <Border Grid.Column="4" Style="{StaticResource pipeCard}">
+                <StackPanel>
+                    <TextBlock Text="TARGET" Style="{StaticResource pipeTitle}"/>
+                    <Button x:Name="targetButton" Style="{StaticResource listButton}" Background="#1E1F22"
+                            Click="onTargetClick" ToolTip="Where your voice and pads are played (pick VB-CABLE for Discord)">
+                        <TextBlock x:Name="targetText" Text="Default speakers" TextTrimming="CharacterEllipsis"/>
+                    </Button>
+                    <Popup x:Name="targetPopup" PlacementTarget="{Binding ElementName=targetButton}" Placement="Top"
+                           VerticalOffset="-6" StaysOpen="False" AllowsTransparency="True">
+                        <Border Style="{StaticResource popupCard}">
+                            <StackPanel x:Name="targetList" MinWidth="260"/>
+                        </Border>
+                    </Popup>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Tabs: each has its own 5×5 grid -->
+        <WrapPanel x:Name="tabBar" DockPanel.Dock="Top" Margin="11,10,11,0"/>
+
+        <UniformGrid x:Name="padGrid" Rows="5" Columns="5" Margin="8"/>
+    </DockPanel>
+</Window>

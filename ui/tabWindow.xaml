@@ -1,0 +1,39 @@
+<Window x:Class="boardzz.ui.tabWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:boardzz.ui"
+        Title="Tab" Width="440" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="#232428" Foreground="#F2F3F5" FontFamily="Segoe UI">
+
+    <StackPanel Margin="24,18,24,24">
+        <TextBlock x:Name="heading" Text="Tab" FontSize="22" FontWeight="Bold"/>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="14"/>
+                <ColumnDefinition Width="170"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="Name" Style="{StaticResource fieldLabel}"/>
+            <TextBlock Grid.Column="2" Text="Emoji" Style="{StaticResource fieldLabel}"/>
+            <TextBox Grid.Row="1" x:Name="nameBox" Style="{StaticResource darkTextBox}" MaxLength="24"/>
+            <ui:emojiPicker Grid.Row="1" Grid.Column="2" x:Name="emojiField"/>
+        </Grid>
+
+        <Grid Margin="0,24,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Button Content="Never mind" Style="{StaticResource flatButton}" IsCancel="True"/>
+            <Button Grid.Column="2" Content="Save" Style="{StaticResource accentButton}" IsDefault="True"
+                    Click="onSaveClick"/>
+        </Grid>
+    </StackPanel>
+</Window>

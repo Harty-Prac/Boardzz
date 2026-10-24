@@ -1,0 +1,4 @@
+Extract the contents of VBCABLE_Driver_Pack45.zip (from https://vb-audio.com/Cable/) into this folder,
+so VBCABLE_Setup_x64.exe sits directly in vendor\VBCABLE.
+
+VB-CABLE by VB-Audio (vb-cable.com). VB-CABLE is a donationware, all participations are welcome.

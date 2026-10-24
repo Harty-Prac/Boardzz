@@ -1,0 +1,9 @@
+bin/
+obj/
+.vs/
+*.user
+.vscode/
+
+# VB-CABLE driver pack: download it yourself (see vendor/VBCABLE/PUT_DRIVER_PACK_HERE.txt)
+vendor/VBCABLE/*
+!vendor/VBCABLE/PUT_DRIVER_PACK_HERE.txt

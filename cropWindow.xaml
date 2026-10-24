@@ -1,0 +1,88 @@
+<Window x:Class="boardzz.cropWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:boardzz.ui"
+        Title="Crop sound" Width="660" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="#232428" Foreground="#F2F3F5" FontFamily="Segoe UI"
+        Loaded="onLoaded" Closed="onClosed">
+
+    <StackPanel Margin="24,18,24,24">
+        <TextBlock Text="Crop sound" FontSize="22" FontWeight="Bold"/>
+
+        <TextBlock Text="Preview" Style="{StaticResource fieldLabel}"/>
+        <Border Background="#1A1B1E" BorderBrush="#2E3035" BorderThickness="1" CornerRadius="8" Padding="12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel VerticalAlignment="Center" Margin="0,0,14,0">
+                    <Button x:Name="playButton" Style="{StaticResource roundButton}" Click="onPlayClick" IsEnabled="False"
+                            ToolTip="Preview the cropped part">
+                        <TextBlock x:Name="playIcon" Text="&#xE768;" FontSize="15"
+                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"/>
+                    </Button>
+                    <TextBlock x:Name="lengthText" Text="–" Foreground="#F0B232" FontSize="13"
+                               HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                </StackPanel>
+
+                <Grid Grid.Column="1" Height="112">
+                    <ui:waveformView x:Name="waveform"/>
+                    <TextBlock x:Name="loadingText" Text="Loading waveform…" Foreground="#9AA0AA"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <DockPanel Margin="2,8,2,0">
+            <TextBlock x:Name="rangeText" Foreground="#9AA0AA" FontSize="12"/>
+            <TextBlock Text="Drag a handle · hold still 2 s to zoom in" Foreground="#6D717A" FontSize="12"
+                       HorizontalAlignment="Right"/>
+        </DockPanel>
+
+        <TextBlock Text="File" Style="{StaticResource fieldLabel}"/>
+        <Border Background="#1E1F22" BorderBrush="#3A3D44" BorderThickness="1" CornerRadius="8" Padding="12,5,5,5">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Content="Browse" Style="{StaticResource flatButton}"
+                        Padding="14,7" FontSize="14" Click="onBrowseClick"/>
+                <TextBlock x:Name="fileText" VerticalAlignment="Center" FontSize="14" TextTrimming="CharacterEllipsis"/>
+            </DockPanel>
+        </Border>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="14"/>
+                <ColumnDefinition Width="220"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="Sound name" Style="{StaticResource fieldLabel}"/>
+            <TextBlock Grid.Column="2" Text="Related emoji" Style="{StaticResource fieldLabel}"/>
+            <TextBox Grid.Row="1" x:Name="nameBox" Style="{StaticResource darkTextBox}" MaxLength="60"/>
+            <ui:emojiPicker Grid.Row="1" Grid.Column="2" x:Name="emojiField"/>
+        </Grid>
+
+        <DockPanel Margin="0,16,0,8">
+            <TextBlock Text="Sound volume" FontWeight="SemiBold" FontSize="15"/>
+            <TextBlock x:Name="volumeText" Foreground="#9AA0AA" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        </DockPanel>
+        <Slider x:Name="volumeSlider" Style="{StaticResource darkSlider}" Minimum="0" Maximum="100"
+                SmallChange="1" LargeChange="10" ValueChanged="onVolumeChanged"/>
+
+        <Grid Margin="0,24,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Button Content="Never mind" Style="{StaticResource flatButton}" IsCancel="True"/>
+            <Button x:Name="saveButton" Grid.Column="2" Content="Save" Style="{StaticResource accentButton}"
+                    IsDefault="True" IsEnabled="False" Click="onSaveClick"/>
+        </Grid>
+    </StackPanel>
+</Window>
