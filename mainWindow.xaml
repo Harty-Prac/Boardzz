@@ -1,6 +1,7 @@
 <Window x:Class="boardzz.mainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:boardzz.ui"
         Title="Boardzz" Width="820" Height="740" MinWidth="640" MinHeight="520"
         Background="#16181D" FontFamily="Segoe UI" FontSize="13" Icon="Assets/boardzz.ico"
         Closed="onClosed">
@@ -38,8 +39,19 @@
     </Window.Resources>
 
     <DockPanel>
+        <!-- Show / hide the routing bar (remembered between runs) -->
+        <Button x:Name="routingToggle" DockPanel.Dock="Bottom" Style="{StaticResource listButton}"
+                Background="Transparent" HorizontalAlignment="Center" Margin="0,0,0,6" Padding="12,4"
+                Click="onRoutingToggleClick">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="routingToggleIcon" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                           VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#9AA0AA"/>
+                <TextBlock x:Name="routingToggleText" Foreground="#9AA0AA" FontSize="12"/>
+            </StackPanel>
+        </Button>
+
         <!-- Source → Boardzz → Target -->
-        <Grid DockPanel.Dock="Bottom" Margin="13,0,13,13">
+        <Grid x:Name="routingBar" DockPanel.Dock="Bottom" Margin="13,0,13,4" Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -60,6 +72,12 @@
                         <Border x:Name="levelTrack" Background="#1E1F22" CornerRadius="3"/>
                         <Border x:Name="levelFill" Background="#3DD68C" CornerRadius="3" HorizontalAlignment="Left" Width="0"/>
                     </Grid>
+                    <DockPanel Margin="0,10,0,0" ToolTip="Source volume, up to 200% (also what gets recorded)">
+                        <TextBlock x:Name="sourceVolumeText" DockPanel.Dock="Right" Width="42" TextAlignment="Right"
+                                   Foreground="#9AA0AA" VerticalAlignment="Center"/>
+                        <Slider x:Name="sourceVolumeSlider" Style="{StaticResource darkSlider}" Minimum="0" Maximum="200"
+                                SmallChange="1" LargeChange="10" ValueChanged="onVolumeChanged"/>
+                    </DockPanel>
                     <Popup x:Name="sourcePopup" PlacementTarget="{Binding ElementName=sourceButton}" Placement="Top"
                            VerticalOffset="-6" StaysOpen="False" AllowsTransparency="True" Closed="onSourcePopupClosed">
                         <Border Style="{StaticResource popupCard}">
@@ -77,21 +95,19 @@
             <Border Grid.Column="2" Style="{StaticResource pipeCard}">
                 <StackPanel>
                     <TextBlock Text="BOARDZZ" Style="{StaticResource pipeTitle}"/>
-                    <StackPanel Orientation="Horizontal">
-                            <Ellipse x:Name="recordDot" Width="9" Height="9" Fill="#ED4245" Opacity="0.25"
-                                     VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock Text="Last" Foreground="#B5BAC1" VerticalAlignment="Center"/>
-                            <TextBox x:Name="secondsBox" Style="{StaticResource darkTextBox}" Width="54" Padding="4,5"
-                                     Margin="6,0" TextAlignment="Center" MaxLength="3"
-                                     KeyDown="onSecondsKeyDown" LostFocus="onSecondsLostFocus"
-                                     ToolTip="How many seconds to keep (1 to 600)"/>
-                            <TextBlock Text="s" Foreground="#B5BAC1" VerticalAlignment="Center"/>
-                    </StackPanel>
-                    <Button Content="Save clip" Style="{StaticResource accentButton}" Margin="0,10,0,0"
-                            FontSize="13" Padding="12,7" Click="onSaveClipClick"
+                    <Border Background="#1E1F22" CornerRadius="6" Height="38" Padding="6,4"
+                            ToolTip="What your pads are playing right now">
+                        <ui:liveWave x:Name="padWave"/>
+                    </Border>
+                    <Button x:Name="saveClipButton" Content="Save clip" Style="{StaticResource accentButton}"
+                            Margin="0,10,0,0" FontSize="13" Padding="12,7" Click="onSaveClipClick"
                             ToolTip="Turn the recorded audio into a pad"/>
-                    <TextBlock x:Name="recordStatus" Text="No source, nothing recording" Foreground="#6D717A"
-                               FontSize="11" Margin="0,6,0,0"/>
+                    <DockPanel Margin="0,6,0,0">
+                        <Ellipse x:Name="recordDot" Width="7" Height="7" Fill="#ED4245" Opacity="0.25"
+                                 VerticalAlignment="Top" Margin="0,4,6,0"/>
+                        <TextBlock x:Name="recordStatus" Text="No source, nothing recording" Foreground="#6D717A"
+                                   FontSize="11" TextWrapping="Wrap"/>
+                    </DockPanel>
                 </StackPanel>
             </Border>
 
@@ -105,6 +121,16 @@
                             Click="onTargetClick" ToolTip="Where your voice and pads are played (pick VB-CABLE for Discord)">
                         <TextBlock x:Name="targetText" Text="Default speakers" TextTrimming="CharacterEllipsis"/>
                     </Button>
+                    <Grid Margin="2,12,2,0" Height="6" ToolTip="Live level going to the target">
+                        <Border x:Name="outputTrack" Background="#1E1F22" CornerRadius="3"/>
+                        <Border x:Name="outputFill" Background="#3DD68C" CornerRadius="3" HorizontalAlignment="Left" Width="0"/>
+                    </Grid>
+                    <DockPanel Margin="0,10,0,0" ToolTip="Output volume, up to 200%">
+                        <TextBlock x:Name="targetVolumeText" DockPanel.Dock="Right" Width="42" TextAlignment="Right"
+                                   Foreground="#9AA0AA" VerticalAlignment="Center"/>
+                        <Slider x:Name="targetVolumeSlider" Style="{StaticResource darkSlider}" Minimum="0" Maximum="200"
+                                SmallChange="1" LargeChange="10" ValueChanged="onVolumeChanged"/>
+                    </DockPanel>
                     <Popup x:Name="targetPopup" PlacementTarget="{Binding ElementName=targetButton}" Placement="Top"
                            VerticalOffset="-6" StaysOpen="False" AllowsTransparency="True">
                         <Border Style="{StaticResource popupCard}">
@@ -116,7 +142,14 @@
         </Grid>
 
         <!-- Tabs: each has its own 5×5 grid -->
-        <WrapPanel x:Name="tabBar" DockPanel.Dock="Top" Margin="11,10,11,0"/>
+        <DockPanel DockPanel.Dock="Top" Margin="11,10,11,0">
+            <Button DockPanel.Dock="Right" Style="{StaticResource roundButton}" Width="36" Height="36"
+                    ToolTip="Settings" Click="onSettingsClick"
+                    FontFamily="Segoe MDL2 Assets" FontSize="16" Content="&#xE713;"/>
+            <Button x:Name="miniButton" DockPanel.Dock="Right" Style="{StaticResource roundButton}" Width="36" Height="36"
+                    Margin="0,0,6,0" Click="onMiniClick" FontFamily="Segoe MDL2 Assets" FontSize="14"/>
+            <WrapPanel x:Name="tabBar"/>
+        </DockPanel>
 
         <UniformGrid x:Name="padGrid" Rows="5" Columns="5" Margin="8"/>
     </DockPanel>

@@ -35,16 +35,25 @@ public partial class mainWindow
                 Emoji.Wpf.Image.SetSource(icon, tab.emoji);
                 content.Children.Add(icon);
             }
-            content.Children.Add(new TextBlock { Text = tab.name, VerticalAlignment = VerticalAlignment.Center });
+            // Mini mode: emoji only when there is one, otherwise a short name.
+            if (!miniMode || tab.emoji == null)
+                content.Children.Add(new TextBlock
+                {
+                    Text = tab.name,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    MaxWidth = miniMode ? 70 : double.PositiveInfinity,
+                    TextTrimming = TextTrimming.CharacterEllipsis
+                });
+            else ((Image)content.Children[0]).Margin = new Thickness(0);
 
             var button = new Button
             {
                 Content = content,
                 Style = (Style)FindResource("listButton"),
                 Background = index == currentTab ? selectedTabBrush : idleTabBrush,
-                Margin = new Thickness(2, 0, 2, 0),
-                Padding = new Thickness(12, 7, 12, 7),
-                ToolTip = "Double-click or right-click to rename"
+                Margin = new Thickness(2, 0, 2, miniMode ? 4 : 0),
+                Padding = miniMode ? new Thickness(8, 5, 8, 5) : new Thickness(12, 7, 12, 7),
+                ToolTip = miniMode ? tab.name : "Double-click or right-click to rename"
             };
             button.Click += (_, _) =>
             {
@@ -63,11 +72,12 @@ public partial class mainWindow
         {
             var add = new Button
             {
-                Content = "+  Add tab",
+                Content = miniMode ? "+" : "+  Add tab",
                 Style = (Style)FindResource("listButton"),
                 Opacity = 0.7,
-                Margin = new Thickness(2, 0, 2, 0),
-                Padding = new Thickness(12, 7, 12, 7)
+                ToolTip = "Add tab",
+                Margin = new Thickness(2, 0, 2, miniMode ? 4 : 0),
+                Padding = miniMode ? new Thickness(8, 5, 8, 5) : new Thickness(12, 7, 12, 7)
             };
             add.Click += (_, _) => addTab();
             tabBar.Children.Add(add);

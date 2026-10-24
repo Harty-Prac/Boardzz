@@ -12,7 +12,10 @@ internal sealed record boardRecord(int selected, List<tabRecord> tabs)
     public static readonly boardRecord empty = new(0, []);
 }
 
-internal sealed record appSettings(string? targetId, int recordSeconds, List<string> micIds, bool desktop)
+internal sealed record appSettings(string? targetId, int recordSeconds, List<string> micIds, bool desktop,
+    bool overlapPads = false, bool recording = true,
+    float sourceVolume = 1, float targetVolume = 1, bool showRouting = false,
+    bool miniMode = false)
 {
     public static readonly appSettings defaults = new(null, 60, [], false);
 }

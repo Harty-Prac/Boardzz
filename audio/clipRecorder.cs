@@ -30,6 +30,7 @@ internal sealed class clipRecorder
     {
         lock (gate)
         {
+            if (ring.Length == 0) return;   // recording is off
             foreach (float sample in samples)
             {
                 ring[position] = (short)(Math.Clamp(sample, -1f, 1f) * short.MaxValue);

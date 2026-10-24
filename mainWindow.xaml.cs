@@ -222,6 +222,9 @@ public partial class mainWindow : Window
 
     private void play(padSlot slot)
     {
+        if (!overlapPads)
+            foreach (var other in slots.Where(s => s.isPlaying)) stop(other);
+
         AudioFileReader? reader = null;
         try
         {
@@ -277,21 +280,26 @@ public partial class mainWindow : Window
     private static void refresh(padSlot slot)
     {
         bool hasSound = slot.filePath != null;
+        bool small = compactPads;
         var content = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         if (hasSound && slot.emoji != null)
         {
-            var icon = new Image { Width = 30, Height = 30, Margin = new Thickness(0, 0, 0, 4) };
+            double size = small ? 22 : 30;
+            var icon = new Image { Width = size, Height = size, Margin = new Thickness(0, 0, 0, small ? 2 : 4) };
             Emoji.Wpf.Image.SetSource(icon, slot.emoji);
             content.Children.Add(icon);
         }
         content.Children.Add(new TextBlock
         {
             Text = hasSound ? slot.name : "+",
-            TextWrapping = TextWrapping.Wrap,
+            TextWrapping = small ? TextWrapping.NoWrap : TextWrapping.Wrap,
+            TextTrimming = small ? TextTrimming.CharacterEllipsis : TextTrimming.None,
             TextAlignment = TextAlignment.Center,
-            FontSize = hasSound ? 13 : 26,
+            FontSize = hasSound ? (small ? 10 : 13) : (small ? 18 : 26),
             Opacity = hasSound ? 1 : 0.45
         });
+        slot.button.Margin = new Thickness(small ? 3 : 5);
+        slot.button.Padding = new Thickness(small ? 4 : 8);
         slot.button.Content = content;
         slot.button.ToolTip = hasSound ? describe(slot) : "Click to choose a sound";
         slot.button.Background = hasSound ? filledBackground : emptyBackground;

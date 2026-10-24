@@ -13,23 +13,26 @@ namespace boardzz;
 // The bar under the grid:  Source → Boardzz (records the last N seconds) → Target
 public partial class mainWindow
 {
-    private readonly audioEngine engine = new(60);
+    private readonly audioEngine engine = new();
     private List<sourceChoice> chosenSources = [];
     private string? targetId;
     private string? activeTargetId;
     private readonly DispatcherTimer meterTimer = new() { Interval = TimeSpan.FromMilliseconds(33) };
     private double meterLevel;
+    private double outputLevel;
+    private static readonly Brush meterGreen = frozenBrush(0x3D, 0xD6, 0x8C);
 
     private void initPipeline()
     {
         var settings = boardStore.loadSettings();
-        engine.resizeRecording(Math.Clamp(settings.recordSeconds, 1, (int)maxSoundSeconds));
-        secondsBox.Text = engine.recordSeconds.ToString();
+        engine.setRecording(settings.recording, Math.Clamp(settings.recordSeconds, 1, (int)maxSoundSeconds));
 
         engine.inputEnded += provider => Dispatcher.InvokeAsync(() => onPadEnded(provider));
         engine.outputFailed += message => Dispatcher.InvokeAsync(() => targetText.Text = $"Stopped: {message}");
 
         targetId = settings.targetId;
+        overlapPads = settings.overlapPads;
+        loadRouting(settings);
         applyTarget();
 
         meterTimer.Tick += (_, _) => updateMeter();
@@ -50,7 +53,13 @@ public partial class mainWindow
                 targetId,
                 engine.recordSeconds,
                 chosenSources.Where(c => c.kind == sourceKind.microphone).Select(c => c.id).ToList(),
-                chosenSources.Any(c => c.kind == sourceKind.desktop)));
+                chosenSources.Any(c => c.kind == sourceKind.desktop),
+                overlapPads,
+                engine.recording,
+                engine.sourceVolume,
+                engine.targetVolume,
+                routingOpen,
+                miniMode));
         }
         catch (IOException) { }   // settings are a convenience; never block the app over them
     }
@@ -82,7 +91,7 @@ public partial class mainWindow
             Tag = choice,
             IsChecked = chosenSources.Any(c => c.kind == choice.kind && c.id == choice.id),
             Foreground = (System.Windows.Media.Brush)FindResource("textBrush"),
-            Margin = new Thickness(4, 3, 4, 3),
+            Margin = new Thickness(0, 1, 0, 1),
             Cursor = Cursors.Hand
         });
     }
@@ -110,9 +119,7 @@ public partial class mainWindow
         var errors = await engine.setSources(chosenSources);
         sourceButton.IsEnabled = true;
 
-        int running = engine.activeSources.Count;
-        recordDot.Opacity = running > 0 ? 1 : 0.25;
-        recordStatus.Text = running == 0 ? "No source, nothing recording" : $"Recording {running} source{(running == 1 ? "" : "s")}";
+        updateRecordStatus();
 
         if (errors.Count > 0)
             MessageBox.Show(this, "Some sources couldn't start:\n" + string.Join("\n", errors), "Boardzz",
@@ -144,34 +151,33 @@ public partial class mainWindow
     // Peak level shown on a -60..0 dB scale, falling back smoothly between peaks.
     private void updateMeter()
     {
-        float peak = engine.takeSourcePeak();
-        double target = peak <= 0 ? 0 : Math.Clamp((20 * Math.Log10(peak) + 60) / 60, 0, 1);
-        meterLevel = Math.Max(target, meterLevel * 0.85);
+        meterLevel = drawLevel(levelTrack, levelFill, engine.takeSourcePeak(), meterLevel);
+        outputLevel = drawLevel(outputTrack, outputFill, engine.takeOutputPeak(), outputLevel);
 
-        levelFill.Width = meterLevel * levelTrack.ActualWidth;
-        levelFill.Background = meterLevel > 0.95 ? Brushes.IndianRed
-            : meterLevel > 0.8 ? Brushes.Goldenrod
-            : (Brush)new BrushConverter().ConvertFromString("#3DD68C")!;
+        float padPeak = engine.takePadPeak();
+        padWave.push(padPeak <= 0 ? 0 : Math.Clamp((20 * Math.Log10(padPeak) + 48) / 48, 0, 1));
+    }
+
+    private static double drawLevel(Border track, Border fill, float peak, double previous)
+    {
+        double target = peak <= 0 ? 0 : Math.Clamp((20 * Math.Log10(peak) + 60) / 60, 0, 1);
+        double level = Math.Max(target, previous * 0.85);
+        fill.Width = level * track.ActualWidth;
+        fill.Background = level > 0.95 ? Brushes.IndianRed : level > 0.8 ? Brushes.Goldenrod : meterGreen;
+        return level;
     }
 
     // ---------- boardzz (record buffer) ----------
 
-    private void onSecondsKeyDown(object sender, KeyEventArgs e)
+    private void updateRecordStatus()
     {
-        if (e.Key == Key.Enter) commitSeconds();
-    }
-
-    private void onSecondsLostFocus(object sender, RoutedEventArgs e) => commitSeconds();
-
-    private void commitSeconds()
-    {
-        if (!int.TryParse(secondsBox.Text.Trim(), out int seconds)) seconds = engine.recordSeconds;
-        seconds = Math.Clamp(seconds, 1, (int)maxSoundSeconds);
-        secondsBox.Text = seconds.ToString();
-        if (seconds == engine.recordSeconds) return;
-
-        engine.resizeRecording(seconds);   // starts a fresh buffer of the new length
-        saveSettings();
+        int running = engine.activeSources.Count;
+        bool live = engine.recording && running > 0;
+        recordDot.Opacity = live ? 1 : 0.25;
+        saveClipButton.Visibility = engine.recording ? Visibility.Visible : Visibility.Collapsed;
+        recordStatus.Text = !engine.recording ? "Recording off (Settings)"
+            : running == 0 ? "No source, nothing recording"
+            : $"Last {engine.recordSeconds} s from {running} source{(running == 1 ? "" : "s")}";
     }
 
     private void onSaveClipClick(object sender, RoutedEventArgs e)
